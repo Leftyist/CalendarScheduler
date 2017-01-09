@@ -578,6 +578,7 @@ public class MainActivity extends AppCompatActivity
                   for (String s : eventList) {
                         Event event = new Event().setSummary(projectName);
 
+
                         String[] val = s.split("\\?");
 
                         DateTime startDateTime = new DateTime(val[0]);
