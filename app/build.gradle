@@ -33,5 +33,6 @@ dependencies {
     compile('com.google.apis:google-api-services-calendar:v3-rev220-1.22.0') {
         exclude group: 'org.apache.httpcomponents'
     }
+    compile 'com.appyvet:materialrangebar:1.3'
 
 }

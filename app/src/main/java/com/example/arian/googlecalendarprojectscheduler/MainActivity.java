@@ -21,6 +21,7 @@ import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.AppCompatButton;
 import android.support.v7.widget.AppCompatEditText;
+import android.support.v7.widget.AppCompatTextView;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -28,6 +29,7 @@ import android.view.View;
 import android.widget.DatePicker;
 import android.widget.Toast;
 
+import com.appyvet.rangebar.RangeBar;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.api.client.extensions.android.http.AndroidHttp;
@@ -46,14 +48,18 @@ import com.google.api.services.calendar.model.Events;
 
 import java.io.IOException;
 import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
 import pub.devrel.easypermissions.AfterPermissionGranted;
 import pub.devrel.easypermissions.EasyPermissions;
+
+import static com.example.arian.googlecalendarprojectscheduler.R.id.rangebar;
 
 public class MainActivity extends AppCompatActivity
         implements EasyPermissions.PermissionCallbacks
@@ -100,8 +106,8 @@ public class MainActivity extends AppCompatActivity
       AppCompatEditText editMinimumHours;
       AppCompatEditText editMaximumHours;
       AppCompatEditText editPaddingMinutes;
-      AppCompatEditText editEarliestHour;
-      AppCompatEditText editLatestHour;
+      AppCompatTextView textEarliestHour;
+      AppCompatTextView textLatestHour;
       String SELECTED_DATE = null;
 
       /**
@@ -126,8 +132,8 @@ public class MainActivity extends AppCompatActivity
             editMinimumHours = (AppCompatEditText) findViewById(R.id.editMinimumHours);
             editMaximumHours = (AppCompatEditText) findViewById(R.id.editMaximumHours);
             editPaddingMinutes = (AppCompatEditText) findViewById(R.id.editPaddedMinutes);
-            editEarliestHour = (AppCompatEditText) findViewById(R.id.editEarliestEvent);
-            editLatestHour = (AppCompatEditText) findViewById(R.id.editLatestEvent);
+            textEarliestHour = (AppCompatTextView) findViewById(R.id.text_starting_time);
+            textLatestHour = (AppCompatTextView) findViewById(R.id.text_ending_time);
 
             if (buttonStartDate != null)
                   buttonStartDate.setOnClickListener(new View.OnClickListener()
@@ -161,6 +167,35 @@ public class MainActivity extends AppCompatActivity
                         }
                   });
 
+
+            RangeBar rangeBar = (RangeBar) findViewById(rangebar);
+            if(rangeBar != null) {
+                  rangeBar.setDrawTicks(false);
+                  rangeBar.setRangePinsByIndices(32, 80);
+                  rangeBar.setOnRangeBarChangeListener(new RangeBar.OnRangeBarChangeListener() {
+                        @Override
+                        public void onRangeChangeListener(RangeBar rangeBar, int leftPinIndex,
+                                                          int rightPinIndex,
+                                                          String leftPinValue, String rightPinValue) {
+
+                              int min = Integer.parseInt(leftPinValue)%60;
+                              int hour = Integer.parseInt(leftPinValue)/60;
+                              Date date = new Date();
+                              date.setHours(hour);
+                              date.setMinutes(min);
+
+                              SimpleDateFormat sdf = new SimpleDateFormat("h:mm a", Locale.getDefault());
+                              textEarliestHour.setText(sdf.format(date));
+
+                              min = Integer.parseInt(rightPinValue)%60;
+                              hour = Integer.parseInt(rightPinValue)/60;
+                              date.setHours(hour);
+                              date.setMinutes(min);
+
+                              textLatestHour.setText(sdf.format(date));
+                        }
+                  });
+            }
             // Initialize credentials and service object.
             mCredential = GoogleAccountCredential.usingOAuth2(
                     getApplicationContext(), Arrays.asList(SCOPES))
@@ -500,11 +535,14 @@ public class MainActivity extends AppCompatActivity
                   val = Integer.parseInt(editPaddingMinutes.getText().toString());
                   parser.setPaddingMinutes(val);
 
-                  val = Integer.parseInt(editEarliestHour.getText().toString());
+                  val = Integer.parseInt(textEarliestHour.getText().toString());
                   parser.setEarliestHour(val);
 
-                  val = Integer.parseInt(editLatestHour.getText().toString());
+                  val = Integer.parseInt(textLatestHour.getText().toString());
                   parser.setLatestHour(val);
+
+                  parser.setStartingDay(startDate);
+                  parser.setEndingDay(endDate);
 
                   for (Event event : items) {
                         DateTime start = event.getStart().getDateTime();
